@@ -1,0 +1,73 @@
+#include <ESP8266WiFi.h>
+#include <DHT.h>
+
+const char* ssid = "IoT_Lab_AP";
+const char* password = "your_password";
+const char* serverIP = "192.168.1.10";
+
+const uint16_t serverPort = 5000;
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+WiFiClient client;
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi connected");
+  Serial.print("Device IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi lost, reconnecting...");
+    WiFi.reconnect();
+    delay(2000);
+    return;
+  }
+
+  if (!client.connected()) {
+    Serial.print("Connecting to TCP server ");
+
+    if (!client.connect(serverIP, serverPort)) {
+      Serial.println("TCP connection failed, retrying...");
+      delay(2000);
+      return;
+    }
+
+    Serial.println("TCP connection established");
+  }
+
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+
+  if (isnan(t) || isnan(h)) {
+    Serial.println("Sensor read failed");
+    delay(2000);
+    return;
+  }
+
+  String msg = "Temp=" + String(t, 1) +
+               "C,Hum=" + String(h, 1) + "%";
+
+  client.println(msg);
+
+  Serial.print("Sent: ");
+  Serial.println(msg);
+
+  delay(2000);
+}
