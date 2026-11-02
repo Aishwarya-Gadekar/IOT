@@ -1,0 +1,35 @@
+#define GAS_PIN A0
+#define LED_PIN 13
+#define BUZZER_PIN 8
+#define THRESHOLD 400
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  Serial.println("MQ-2 warming up (20 s)...");
+  delay(20000);
+
+  Serial.println("Gas monitoring started");
+}
+
+void loop() {
+  int gasValue = analogRead(GAS_PIN);
+
+  Serial.print("Gas Sensor Value: ");
+  Serial.println(gasValue);
+
+  if (gasValue > THRESHOLD) {
+    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(BUZZER_PIN, HIGH);
+    Serial.println("Gas Leakage Detected");
+  } else {
+    digitalWrite(LED_PIN, LOW);
+    digitalWrite(BUZZER_PIN, LOW);
+    Serial.println("No Gas Leakage");
+  }
+
+  delay(500);
+}
