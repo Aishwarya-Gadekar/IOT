@@ -1,0 +1,34 @@
+import RPi.GPIO as GPIO
+import paho.mqtt.client as mqtt
+import time
+
+IR_PIN = 17
+BROKER = "broker.hivemq.com"
+TOPIC = "iot/ir_sensor"
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(IR_PIN, GPIO.IN)
+
+client = mqtt.Client()
+client.connect(BROKER, 1883, 60)
+
+print("MQTT Publisher Started")
+
+try:
+    while True:
+        if GPIO.input(IR_PIN) == 0:
+            message = "Object Detected"
+        else:
+            message = "No Object Detected"
+
+        client.publish(TOPIC, message)
+        print("Published:", message)
+
+        time.sleep(2)
+
+except KeyboardInterrupt:
+    print("Stopped")
+
+finally:
+    GPIO.cleanup()
+    client.disconnect()
